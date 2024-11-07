@@ -2,7 +2,7 @@
 CREATE DATABASE rest2;
 USE rest2;
 
--- 1. Customers Table
+--  Customers Table
 CREATE TABLE Customers (
     Cust_Id INT PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE Customers (
     Preferences VARCHAR(255)
 );
 
--- 2. Menu Table
+--  Menu Table
 CREATE TABLE Menu (
     Menu_Id INT PRIMARY KEY,
     Description VARCHAR(255) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE Menu (
     Prep_Time INT CHECK (Prep_Time >= 0)
 );
 
--- 3. Employees Table (moved before Reservations and Orders for FK references)
+--  Employees Table (moved before Reservations and Orders for FK references)
 CREATE TABLE Employees (
     Emp_Id INT PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE Employees (
     Performance_Score DECIMAL(3, 2) CHECK (Performance_Score >= 0 AND Performance_Score <= 5)
 );
 
--- 4. Payment Table
+--  Payment Table
 CREATE TABLE Payment (
     Pay_Id INT PRIMARY KEY,
     Date DATE NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE Payment (
     FOREIGN KEY (Cust_Id) REFERENCES Customers(Cust_Id)
 );
 
--- 5. Orders Table (moved after Payment for FK references)
+--  Orders Table (moved after Payment for FK references)
 CREATE TABLE Orders (
     Ord_Id INT PRIMARY KEY,
     Date DATE NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE Orders (
     FOREIGN KEY (Payment_Id) REFERENCES Payment(Pay_Id)
 );
 
--- 6. Reservations Table
+--  Reservations Table
 CREATE TABLE Reservations (
     Reserv_Id INT PRIMARY KEY,
     Date DATE NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE Reservations (
     FOREIGN KEY (Emp_Id) REFERENCES Employees(Emp_Id)
 );
 
--- 7. Delivery & Takeaway Table
+--  Delivery & Takeaway Table
 CREATE TABLE Delivery_Takeaway (
     Delivery_Id INT PRIMARY KEY,
     Destination VARCHAR(255) NOT NULL,
@@ -83,7 +83,7 @@ CREATE TABLE Delivery_Takeaway (
     FOREIGN KEY (Emp_Id) REFERENCES Employees(Emp_Id)
 );
 
--- 8. Suppliers Table
+--  Suppliers Table
 CREATE TABLE Suppliers (
     Sup_Id INT PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
@@ -93,28 +93,14 @@ CREATE TABLE Suppliers (
     Rating DECIMAL(3, 2) CHECK (Rating >= 0 AND Rating <= 5)
 );
 
--- 9. Stock Table
-CREATE TABLE Stock (
-    Stock_Id INT PRIMARY KEY,
-    Food_Stuffs INT DEFAULT 0,
-    Beverages INT DEFAULT 0,
-    Cutlery INT DEFAULT 0,
-    Packaging_Items INT DEFAULT 0,
-    Last_Updated DATE DEFAULT CURRENT_DATE,
-    Threshold INT DEFAULT 0 CHECK (Threshold >= 0),
-    Sup_Id INT,
-    Emp_Id INT,
-    FOREIGN KEY (Sup_Id) REFERENCES Suppliers(Sup_Id),
-    FOREIGN KEY (Emp_Id) REFERENCES Employees(Emp_Id)
-);
 
--- 10. Products Table
+--  Products Table
 CREATE TABLE Products (
     Product_Id INT PRIMARY KEY,
     Product_Name VARCHAR(50) NOT NULL UNIQUE
 );
 
--- 11. Supplied_Items Table
+--  Supplied_Items Table
 CREATE TABLE Supplied_Items (
     Sup_Id INT,
     Product_Id INT,
@@ -123,7 +109,7 @@ CREATE TABLE Supplied_Items (
     FOREIGN KEY (Product_Id) REFERENCES Products(Product_Id)
 );
 
--- 12. Order_Items Table
+--  Order_Items Table
 CREATE TABLE Order_Items (
     Order_Item_Id INT PRIMARY KEY,
     Order_Id INT,
@@ -134,7 +120,7 @@ CREATE TABLE Order_Items (
     FOREIGN KEY (Menu_Id) REFERENCES Menu(Menu_Id)
 );
 
--- 13. Sales_Report Table
+--  Sales_Report Table
 CREATE TABLE Sales_Report (
     Report_Id INT PRIMARY KEY,
     Date DATE NOT NULL,
@@ -225,7 +211,7 @@ VALUES
 (4, 3, 3, 1, 15.000), 
 (5, 3, 4, 1, 12.000); 
 
--- 9. Stock Table
+-- Stock Table
 CREATE TABLE Stock (
     Stock_Id INT PRIMARY KEY,
     Food_Stuffs INT DEFAULT 0,
