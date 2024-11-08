@@ -303,7 +303,7 @@ SELECT * FROM customers;
 CREATE TRIGGER after_insert_trigger
 AFTER INSERT ON your_table
 FOR EACH ROW
-BEGIN--  This trigger logs each insert action.
+BEGIN
   INSERT INTO log_table (action, action_time)
   VALUES ('Insert', NOW());
 END;
