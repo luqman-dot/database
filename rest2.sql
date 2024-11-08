@@ -233,6 +233,39 @@ VALUES
 (2, 10, 500, 00, 200, '2024-11-07', 15, 2, 102),  
 (3, 00, 00, 200, 100, NULL, 5, 3, 103);              
 
+SELECT * FROM customers;
+
+
+-- stored procedures
+drop PROCEDURE AddCustomer;
+-- AddLoyaltyPoints
+DELIMITER //
+
+CREATE PROCEDURE AddLoyaltyPoints(IN CustId INT, IN Points INT)
+BEGIN
+    UPDATE Customers
+    SET Loyalty_Points = Loyalty_Points + Points
+    WHERE Cust_Id = CustId;
+END //
+
+DELIMITER ;
+
+CALL AddLoyaltyPoints(1, 50);
+
+--updateStock
+DELIMITER //
+
+CREATE PROCEDURE UpdateStock(IN ProductId INT, IN NewQuantity INT, IN SupplierId INT)
+BEGIN
+    UPDATE Stock
+    SET Quantity = Quantity + NewQuantity, Last_Updated = CURRENT_DATE
+    WHERE Product_Id = ProductId AND Sup_Id = SupplierId;
+END //
+
+DELIMITER ;
+
+
+
 
 
 
