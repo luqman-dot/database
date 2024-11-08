@@ -263,6 +263,49 @@ BEGIN
 END //
 
 DELIMITER ;
+CALL UpdateStock(1, 100, 1);
+DROP PROCEDURE `UpdateStock`;
+
+
+--GetCustomerOrders
+DELIMITER //
+
+CREATE PROCEDURE GetCustomerOrders(IN CustId INT)
+BEGIN
+    SELECT Orders.Ord_Id, Orders.Date, Orders.Total_Amount, Orders.Status
+    FROM Orders
+    WHERE Orders.Cust_Id = CustId;
+END //
+
+DELIMITER ;
+CALL GetCustomerOrders(1);
+
+drop PROCEDURE `DailySalesReport`;
+
+-- listProductsBySupplier
+DELIMITER //
+
+CREATE PROCEDURE ListProductsBySupplier(IN SupplierId INT)
+BEGIN
+    SELECT Products.Product_Name
+    FROM Products
+    JOIN Supplied_Items ON Products.Product_Id = Supplied_Items.Product_Id
+    WHERE Supplied_Items.Sup_Id = SupplierId;
+END //
+
+DELIMITER ;
+CALL ListProductsBySupplier(1);
+
+
+--triggers
+
+
+
+
+
+
+
+
 
 
 
