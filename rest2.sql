@@ -250,7 +250,7 @@ END //
 
 DELIMITER ;
 
-CALL AddLoyaltyPoints(1, 50);
+CALL AddLoyaltyPoints(2, 50);
 
 --updateStock
 DELIMITER //
@@ -278,7 +278,7 @@ BEGIN
 END //
 
 DELIMITER ;
-CALL GetCustomerOrders(1);
+CALL GetCustomerOrders(2);
 
 drop PROCEDURE `DailySalesReport`;
 
@@ -298,6 +298,16 @@ CALL ListProductsBySupplier(1);
 
 
 --triggers
+SELECT * FROM customers;
+--  This trigger logs each insert action.
+CREATE TRIGGER after_insert_trigger
+AFTER INSERT ON your_table
+FOR EACH ROW
+BEGIN--  This trigger logs each insert action.
+  INSERT INTO log_table (action, action_time)
+  VALUES ('Insert', NOW());
+END;
+
 
 
 
