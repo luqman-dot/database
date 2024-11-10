@@ -1,4 +1,5 @@
--- Creating the Database
+
+
 CREATE DATABASE rest2;
 USE rest2;
 
@@ -297,16 +298,98 @@ DELIMITER ;
 CALL ListProductsBySupplier(1);
 
 
---triggers
 SELECT * FROM customers;
---  This trigger logs each insert action.
-CREATE TRIGGER after_insert_trigger
-AFTER INSERT ON your_table
+
+-- triggers
+
+-- AFTER INSERT Trigger: Logs every new order added to the Orders table in the Audit_Log table.
+CREATE TRIGGER after_order_insert
+AFTER INSERT ON Orders
 FOR EACH ROW
 BEGIN
-  INSERT INTO log_table (action, action_time)
-  VALUES ('Insert', NOW());
+    -- Insert a record into Audit_Log with details of the new order, action, date, and user.
+    INSERT INTO Audit_Log (action, table_name, record_id, change_date, user)
+    VALUES ('INSERT', 'Orders', NEW.Ord_Id, NOW(), CURRENT_USER);
 END;
+
+-- AFTER UPDATE Trigger: Logs updates made to the Employees table, specifically the Salary field.
+CREATE TRIGGER after_employee_update
+AFTER UPDATE ON Employees
+FOR EACH ROW
+BEGIN
+    -- Insert a record into Audit_Log capturing the action, record_id, change_date, user, and changes in salary.
+    INSERT INTO Audit_Log (action, table_name, record_id, change_date, user, old_value, new_value)
+    VALUES ('UPDATE', 'Employees', NEW.Emp_Id, NOW(), CURRENT_USER, OLD.Salary, NEW.Salary);
+END;
+
+-- AFTER DELETE Trigger: Logs deletions of customers from the Customers table.
+CREATE TRIGGER after_customer_delete
+AFTER DELETE ON Customers
+FOR EACH ROW
+BEGIN
+    -- Insert a record into Audit_Log with the details of the deleted customer.
+    INSERT INTO Audit_Log (action, table_name, record_id, change_date, user)
+    VALUES ('DELETE', 'Customers', OLD.Cust_Id, NOW(), CURRENT_USER);
+END;
+
+-- BEFORE INSERT Trigger: Ensures customer emails are unique before insertion.
+CREATE TRIGGER before_customer_insert
+BEFORE INSERT ON Customers
+FOR EACH ROW
+BEGIN
+    -- Check if the email already exists in the Customers table. If it does, an error is raised.
+    IF EXISTS (SELECT 1 FROM Customers WHERE Email = NEW.Email) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Duplicate email not allowed';
+    END IF;
+END;
+
+-- BEFORE UPDATE Trigger: Restricts unauthorized users from updating employee salary.
+CREATE TRIGGER before_employee_salary_update
+BEFORE UPDATE ON Employees
+FOR EACH ROW
+BEGIN
+    -- Check if the current user has permission. If not, raise an error.
+    IF CURRENT_USER NOT IN ('manager@localhost', 'supervisor@localhost') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Permission denied to update salary';
+    END IF;
+END;
+
+-- BEFORE DELETE Trigger: Restricts deletion of employee records to the manager only.
+CREATE TRIGGER before_employee_delete
+BEFORE DELETE ON Employees
+FOR EACH ROW
+BEGIN
+    -- Check if the current user is the manager. If not, raise an error.
+    IF CURRENT_USER != 'manager@localhost' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Only managers can delete employee records';
+    END IF;
+END;
+
+-- Logon Trigger: Logs every login attempt to the User_Log table.
+CREATE TRIGGER logon_trigger
+AFTER LOGON ON DATABASE
+BEGIN
+    -- Insert a record into User_Log with the user and the login time.
+    INSERT INTO User_Log (user, login_time)
+    VALUES (CURRENT_USER, NOW());
+END;
+
+-- DDL Trigger: Logs schema changes like CREATE, ALTER, or DROP operations.
+CREATE TRIGGER ddl_trigger
+AFTER CREATE ON SCHEMA
+FOR EACH STATEMENT
+BEGIN
+    -- Insert a record into DDL_Log with details of the schema action, object type, name, and user.
+    INSERT INTO DDL_Log (action, object_type, object_name, change_date, user)
+    VALUES ('CREATE', 'TABLE', 'TargetTable', NOW(), CURRENT_USER);
+END;
+
+
+
+
 
 
 
