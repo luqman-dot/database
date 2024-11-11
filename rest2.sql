@@ -1,5 +1,3 @@
-
-
 CREATE DATABASE rest2;
 USE rest2;
 
@@ -321,6 +319,10 @@ BEGIN
     INSERT INTO Audit_Log (action, table_name, record_id, change_date, user, old_value, new_value)
     VALUES ('UPDATE', 'Employees', NEW.Emp_Id, NOW(), CURRENT_USER, OLD.Salary, NEW.Salary);
 END;
+update  employees set  Salary =3500.00 where emp_id = 101;
+
+
+
 
 -- AFTER DELETE Trigger: Logs deletions of customers from the Customers table.
 CREATE TRIGGER after_customer_delete
@@ -375,7 +377,7 @@ BEGIN
     -- Insert a record into User_Log with the user and the login time.
     INSERT INTO User_Log (user, login_time)
     VALUES (CURRENT_USER, NOW());
-END;
+END; 
 
 -- DDL Trigger: Logs schema changes like CREATE, ALTER, or DROP operations.
 CREATE TRIGGER ddl_trigger
@@ -389,10 +391,40 @@ END;
 
 
 
+show TRIGGERS;
+-- Create Audit_Log table to store action logs triggered by database events
+CREATE TABLE Audit_Log (
+    Log_Id INT AUTO_INCREMENT PRIMARY KEY,  
+    Action_Type VARCHAR(50) NOT NULL,       
+    Table_Affected VARCHAR(50) NOT NULL,     
+    Description TEXT,                         
+    User_Responsible VARCHAR(50),             
+    Action_Time TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+);
 
 
+INSERT INTO Audit_Log (Action_Type, Table_Affected, Description, User_Responsible)
+VALUES ('INSERT', 'Orders', 'Inserted new record into Orders', CURRENT_USER());
 
 
+UPDATE Employees
+SET Salary = 4200.00
+WHERE Emp_Id = 102;
+
+SELECT * FROM audit_log;
+-- Update a customer's information to trigger BEFORE UPDATE on Customers
+UPDATE Customers
+SET Loyalty_Points = Loyalty_Points + 10
+WHERE Cust_Id = 2;
+
+SELECT * FROM audit_log;
+
+-- Insert a new stock item to trigger BEFORE INSERT on Stock
+INSERT INTO Stock (Stock_Id, Food_Stuffs, Beverages, Cutlery, Packaging_Items, Sup_Id, Emp_Id)
+VALUES (301, 100, 200, 150, 50, 1, 101);
+-- Insert a new stock item to trigger BEFORE INSERT on Stock
+INSERT INTO Stock (Stock_Id, Food_Stuffs, Beverages, Cutlery, Packaging_Items, Sup_Id, Emp_Id)
+VALUES (4, 100, 200, 150, 50, 1, 101);
 
 
 
