@@ -299,6 +299,21 @@ VALUES
 ('student_joy', 'changemenow', 'Joy', 'joy@ucu.ac.ug', 'student'),
 ('student_edward', 'changemenow', 'Edward', 'edward@ucu.ac.ug', 'student');
 
+CREATE USER 'admin1'@'localhost' IDENTIFIED BY 'admin1';
+GRANT ALL PRIVILEGES ON studentelection.* TO 'admin1'@'localhost';
+
+
+CREATE USER 'lecturer1'@'localhost' IDENTIFIED BY 'lecturer1';
+GRANT SELECT ON studentelection.faculties TO 'lecturer1'@'localhost';
+GRANT SELECT ON studentelection.programs TO 'lecturer1'@'localhost';
+
+
+CREATE USER 'student1'@'localhost' IDENTIFIED BY 'student1';
+GRANT SELECT ON studentelection.candidates TO 'student1'@'localhost';
+GRANT SELECT ON studentelection.vetting TO 'student1'@'localhost';
+GRANT INSERT ON studentelection.votes TO 'student1'@'localhost';
+GRANT INSERT ON studentelection.nominations TO 'student1'@'localhost';
+
 
 
 -- Insert Students
@@ -442,7 +457,135 @@ WHERE position IN (
     'MP Special Needs'
 );
 
+INSERT INTO Votes (student_id, election_id, candidate_id, vote_status, invalid_reason)
+VALUES 
+    (1, 101, 201, 'Valid', NULL),   
+    (2, 101, 202, 'Va   
 
+-- Insert results for valid voteslid', NULL),    
+    (3, 101, NULL, 'Invalid', 'Incomplete ballot'),
+    (4, 102, 203, 'Valid', NULL),    
+    (5, 102, 204, 'Valid', NULL); 
+INSERT INTO Results (election_id, candidate_id, votes_received, invalid_votes, is_winner)
+SELECT
+    v.election_id,
+    v.candidate_id,
+    COUNT(v.student_id) AS votes_received,
+    0 AS invalid_votes,
+    FALSE AS is_winner
+FROM Votes v
+WHERE v.vote_status = 'Valid'
+GROUP BY v.election_id, v.candidate_id;
+UPDATE Results r
+SET r.invalid_votes = (
+    SELECT COUNT(v.student_id)
+    FROM Votes v
+    WHERE v.election_id = r.election_id
+    AND v.vote_status = 'Invalid'
+);
+
+INSERT INTO Results (election_id, candidate_id, votes_received, invalid_votes, is_winner)
+SELECT 
+    election_id,
+    candidate_id,
+    COUNT(student_id) AS votes_received,
+    0 AS invalid_votes, 
+    FALSE AS is_winner  
+FROM Votes
+WHERE vote_status = 'Valid'
+GROUP BY election_id, candidate_id;
+
+UPDATE Results r
+SET r.invalid_votes = (
+    SELECT COUNT(student_id)
+    FROM Votes v
+    WHERE v.election_id = r.election_id
+    AND v.vote_status = 'Invalid'
+);
+
+UPDATE Results r
+SET is_winner = TRUE
+WHERE (r.election_id, r.votes_received) IN (
+    SELECT election_id, MAX(votes_received)
+    FROM Results
+    GROUP BY election_id
+);
+DELIMITER $$
+
+CREATE PROCEDURE RegisterUser (
+    IN p_user_name VARCHAR(255),
+    IN p_email VARCHAR(255),
+    IN p_role ENUM('Student', 'Admin')
+)
+BEGIN
+    DECLARE existing_user INT;
+
+    -- Check if the email is already registered
+    SELECT COUNT(*)
+    INTO existing_user
+    FROM Users
+    WHERE email = p_email;
+
+    IF existing_user > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Email is already registered.';
+    ELSE
+        -- Insert the user
+        INSERT INTO Users (user_name, email, role)
+        VALUES (p_user_name, p_email, p_role);
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+DELIMITER //
+
+CREATE PROCEDURE AddVote(
+    IN p_student_id INT,
+    IN p_election_id INT,
+    IN p_candidate_id INT,
+    IN p_vote_status ENUM('Valid', 'Invalid'),
+    IN p_invalid_reason VARCHAR(255)
+)
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM Votes
+        WHERE student_id = p_student_id
+        AND election_id = p_election_id
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'This student has already voted in this election.';
+    ELSE
+        INSERT INTO Votes (student_id, election_id, candidate_id, vote_status, invalid_reason)
+        VALUES (p_student_id, p_election_id, p_candidate_id, p_vote_status, p_invalid_reason);
+    END IF;
+END//
+
+DELIMITER ;
+CALL AddVote(1, 41, 55, 'Valid', NULL); 
+CALL AddVote(9, 42, NULL, 'Invalid', 'Incomplete ballot'); 
+CALL AddVote(10, 41, 55, 'Valid', NULL); 
+
+
+
+DELIMITER //
+
+CREATE PROCEDURE ShowNumberOfVoters(
+    IN p_election_id INT
+)
+BEGIN
+    DECLARE total_voters INT;
+
+    SELECT COUNT(DISTINCT student_id) INTO total_voters
+    FROM Votes
+    WHERE election_id = p_election_id;
+    SELECT CONCAT('Total number of voters in election ', p_election_id, ': ', total_voters) AS VoterCount;
+END//
+
+DELIMITER ;
+CALL ShowNumberOfVoters(41);
 
 
 
